@@ -2,6 +2,9 @@ package vn.com.vds.vdt.servicebuilder.service.common.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import vn.com.vds.vdt.servicebuilder.common.constants.ErrorCodes;
@@ -9,12 +12,16 @@ import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.CreateEntityTypeR
 import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.UpdateEntityTypeRequest;
 import vn.com.vds.vdt.servicebuilder.entity.AttributeDefinition;
 import vn.com.vds.vdt.servicebuilder.entity.EntityType;
+import vn.com.vds.vdt.servicebuilder.entity.Instance;
 import vn.com.vds.vdt.servicebuilder.exception.CommandExceptionBuilder;
 import vn.com.vds.vdt.servicebuilder.repository.AttributeDefinitionRepository;
+import vn.com.vds.vdt.servicebuilder.repository.AttributeValueRepository;
 import vn.com.vds.vdt.servicebuilder.repository.EntityTypeRepository;
+import vn.com.vds.vdt.servicebuilder.repository.InstanceRepository;
 import vn.com.vds.vdt.servicebuilder.service.common.EntityTypeService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -24,6 +31,8 @@ public class EntityTypeServiceImpl implements EntityTypeService {
 
     private final EntityTypeRepository entityTypeRepository;
     private final AttributeDefinitionRepository attributeDefinitionRepository;
+    private final InstanceRepository instanceRepository;
+    private final AttributeValueRepository attributeValueRepository;
 
     @Transactional
     @Override
@@ -105,4 +114,36 @@ public class EntityTypeServiceImpl implements EntityTypeService {
         return entityType;
     }
 
+    @Override
+    public EntityType getEntityTypeByName(String name) {
+        return entityTypeRepository.findByName(name).orElseThrow(
+                () -> CommandExceptionBuilder.exception(ErrorCodes.QS00004, "Entity type not found: " + name));
+    }
+
+    @Override
+    public Page<EntityType> getEntityTypes(Pageable pageable) {
+        Page<EntityType> page = entityTypeRepository.findAll(pageable);
+        return page;
+    }
+
+    @Transactional
+    @Override
+    public void deleteEntityType(Long id) {
+        // Get all entities in the Entities table with that entityTypeId
+        List<Instance> instances = instanceRepository.findEntitiesByEntityTypeId(id);
+
+        // delete all rows related to that EntityType in attribute_values table
+        for (Instance instance : instances) {
+            attributeValueRepository.deleteByEntityId(instance.getEntityId());
+        }
+
+        for (Instance instance : instances) {
+            instanceRepository.deleteInstanceById(instance.getEntityId());
+        }
+
+        attributeDefinitionRepository.deleteByEntityTypeId(id);
+
+        entityTypeRepository.deleteById(id);
+
+    }
 }

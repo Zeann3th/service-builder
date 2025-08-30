@@ -1,6 +1,11 @@
 package vn.com.vds.vdt.servicebuilder.controller;
 
 import lombok.RequiredArgsConstructor;
+
+import java.security.PublicKey;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import vn.com.vds.vdt.servicebuilder.common.base.ResponseWrapper;
@@ -18,9 +23,19 @@ public class EntityTypeController {
 
     private final EntityTypeService entityTypeService;
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public EntityType getEntityTypeById(@PathVariable("id") Long id) {
         return entityTypeService.getEntityTypeById(id);
+    }
+
+    @GetMapping("/name/{name}")
+    public EntityType getEntityTypeByName(@PathVariable("name") String name) {
+        return entityTypeService.getEntityTypeByName(name);
+    }
+
+    @GetMapping
+    public Page<EntityType> getEntityTypes(Pageable pageable) {
+        return entityTypeService.getEntityTypes(pageable);
     }
 
     @PostMapping
@@ -34,6 +49,11 @@ public class EntityTypeController {
             throw new IllegalArgumentException("Path ID must match request body entityTypeId");
         }
         return entityTypeService.update(request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable("id") Long id) {
+        entityTypeService.deleteEntityType(id);
     }
 
 }
