@@ -1,16 +1,11 @@
 package vn.com.vds.vdt.servicebuilder.controller;
 
 import lombok.RequiredArgsConstructor;
-
-import java.security.PublicKey;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
 import vn.com.vds.vdt.servicebuilder.common.base.ResponseWrapper;
-import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.CreateEntityTypeRequest;
-import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.UpdateEntityTypeRequest;
+import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.EntityTypeRequest;
 import vn.com.vds.vdt.servicebuilder.entity.EntityType;
 import vn.com.vds.vdt.servicebuilder.service.common.EntityTypeService;
 
@@ -39,16 +34,13 @@ public class EntityTypeController {
     }
 
     @PostMapping
-    public EntityType create(@RequestBody CreateEntityTypeRequest request) {
+    public EntityType create(@RequestBody EntityTypeRequest request) {
         return entityTypeService.create(request);
     }
 
     @PutMapping("/{id}")
-    public EntityType update(@PathVariable("id") Long id, @RequestBody UpdateEntityTypeRequest request) {
-        if (!id.equals(request.getEntityTypeId())) {
-            throw new IllegalArgumentException("Path ID must match request body entityTypeId");
-        }
-        return entityTypeService.update(request);
+    public EntityType update(@PathVariable("id") Long id, @RequestBody EntityTypeRequest request) {
+        return entityTypeService.update(id, request);
     }
 
     @DeleteMapping("/{id}")
