@@ -1,18 +1,33 @@
 package vn.com.vds.vdt.servicebuilder.service.core;
 
-import io.camunda.client.api.response.ActivatedJob;
-import io.camunda.client.api.worker.JobClient;
-import io.camunda.spring.client.annotation.JobWorker;
+import io.camunda.client.CamundaClient;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @SuppressWarnings("all")
+@RequiredArgsConstructor
+@Slf4j
 public class DefaultJobWorker {
-    @JobWorker(type = "default")
-    public void execute(final JobClient client, final ActivatedJob job) {
-        client.newCompleteCommand(job.getKey())
-                .variables(job.getVariablesAsMap())
-                .send()
-                .join();
+    @Value("${spring.application.name}")
+    private String serviceName;
+
+    private final CamundaClient camundaClient;
+
+    @PostConstruct
+    public void registerWorker() {
+        camundaClient.newWorker()
+                .jobType(serviceName)
+                .handler((client, job) -> {
+                    client.newCompleteCommand(job.getKey())
+                            .variables(job.getVariablesAsMap())
+                            .send()
+                            .join();
+                })
+                .open();
+        log.info("Registered job worker for type '{}'", serviceName);
     }
 }
