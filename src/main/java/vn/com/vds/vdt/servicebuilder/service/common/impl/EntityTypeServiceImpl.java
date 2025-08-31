@@ -8,8 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import vn.com.vds.vdt.servicebuilder.common.constants.ErrorCodes;
-import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.CreateEntityTypeRequest;
-import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.UpdateEntityTypeRequest;
+import vn.com.vds.vdt.servicebuilder.controller.dto.entityType.EntityTypeRequest;
 import vn.com.vds.vdt.servicebuilder.entity.AttributeDefinition;
 import vn.com.vds.vdt.servicebuilder.entity.EntityType;
 import vn.com.vds.vdt.servicebuilder.entity.Instance;
@@ -36,7 +35,7 @@ public class EntityTypeServiceImpl implements EntityTypeService {
 
     @Transactional
     @Override
-    public EntityType create(CreateEntityTypeRequest request) {
+    public EntityType create(EntityTypeRequest request) {
         String name = request.getName().toLowerCase();
         Optional<EntityType> optionalEntityType = entityTypeRepository.findByName(name);
         if (optionalEntityType.isPresent()) {
@@ -74,10 +73,10 @@ public class EntityTypeServiceImpl implements EntityTypeService {
 
     @Transactional
     @Override
-    public EntityType update(UpdateEntityTypeRequest request) {
-        EntityType entityType = entityTypeRepository.findById(request.getEntityTypeId())
+    public EntityType update(Long id, EntityTypeRequest request) {
+        EntityType entityType = entityTypeRepository.findById(id)
                 .orElseThrow(() -> CommandExceptionBuilder.exception("QS00004",
-                        "Entity type not found: " + request.getEntityTypeId()));
+                        "Entity type not found: " + id));
 
         entityType.setDisplayName(request.getDisplayName());
         entityType.setIsActive(Boolean.TRUE.equals(request.getIsActive()));
