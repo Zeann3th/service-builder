@@ -1,6 +1,6 @@
 spring:
   application:
-  name: Service Builder
+    name: service-builder
 
   kafka:
     bootstrap-servers: localhost:9092
@@ -45,6 +45,14 @@ app:
   kafka:
     topics:
       schema-parse: schema-parse-topic
+
+eureka:
+  client:
+    enabled: false
+    should-register-with-eureka: false
+    should-fetch-registry: false
+    service-url:
+        defaultZone: http://localhost:8761/eureka/
 
 camunda:
   client:
