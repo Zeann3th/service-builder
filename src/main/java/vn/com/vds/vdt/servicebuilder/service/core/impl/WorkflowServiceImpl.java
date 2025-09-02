@@ -10,7 +10,6 @@ import vn.com.vds.vdt.servicebuilder.controller.dto.workflow.TriggerWorkflowRequ
 import vn.com.vds.vdt.servicebuilder.exception.CommandExceptionBuilder;
 import vn.com.vds.vdt.servicebuilder.service.core.WorkflowService;
 
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -46,10 +45,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    public Map<String, Object> executeSync(String workflowName, TriggerWorkflowRequest request) {
+    public Object executeSync(String workflowName, TriggerWorkflowRequest request) {
         try {
             int version = Objects.isNull(request.getVersion()) ? -1 : request.getVersion();
-            ProcessInstanceResult pi = camundaClient.newCreateInstanceCommand()
+            String resultKey = Objects.isNull(request.getResultKey()) ? "result" : request.getResultKey();
+
+            ProcessInstanceResult processInstance = camundaClient.newCreateInstanceCommand()
                     .bpmnProcessId(workflowName)
                     .version(version)
                     .variables(request.getVariables())
@@ -57,12 +58,19 @@ public class WorkflowServiceImpl implements WorkflowService {
                     .send()
                     .join();
 
-            return pi.getVariablesAsMap();
+            log.info("Started workflow '{}' with definitionKey={} and instanceKey={}, returns resultKey={}",
+                    workflowName,
+                    processInstance.getProcessDefinitionKey(),
+                    processInstance.getProcessInstanceKey(),
+                    resultKey
+            );
+
+            return processInstance.getVariable(resultKey);
         } catch (Exception e) {
             log.error("Failed to start workflow '{}': {}", workflowName, e.getMessage(), e);
             throw CommandExceptionBuilder.exception(
                     ErrorCodes.QS00004,
-                    "Failed to start workflow due to non-existent workflow or invalid version"
+                    e.getMessage()
             );
         }
     }
