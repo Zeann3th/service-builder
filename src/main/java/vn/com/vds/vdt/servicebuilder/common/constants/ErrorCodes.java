@@ -24,4 +24,10 @@ public class ErrorCodes {
     // ---------------- Database Errors ---------------- (QS3xxxx)
     public static final String QS30001 = "QS30001"; // DB connection failed
     public static final String QS30002 = "QS30002"; // DB query execution error
+
+    // ---------------- Workflow Errors --------- (QS4xxxx)
+    public static final String QS40001 = "QS40001"; // Workflow execution failed
+    public static final String QS40002 = "QS40002"; // Workflow not found
+    public static final String QS40003 = "QS40003"; // Workflow is being processed
+    // GAP reserved: QS40004 ~ QS40050
 }
