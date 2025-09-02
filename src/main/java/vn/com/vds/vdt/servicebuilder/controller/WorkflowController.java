@@ -8,8 +8,6 @@ import vn.com.vds.vdt.servicebuilder.common.enums.ExecutionMode;
 import vn.com.vds.vdt.servicebuilder.controller.dto.workflow.TriggerWorkflowRequest;
 import vn.com.vds.vdt.servicebuilder.service.core.WorkflowService;
 
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/v1/workflows")
 @RequiredArgsConstructor
@@ -20,7 +18,7 @@ public class WorkflowController {
     private final WorkflowService workflowService;
 
     @PostMapping("/{workflowName}")
-    public Map<String, Object> execute(
+    public Object execute(
             @PathVariable("workflowName") String workflowName,
             @RequestBody TriggerWorkflowRequest request,
             @RequestParam(value = "mode", defaultValue = "ASYNC") ExecutionMode mode

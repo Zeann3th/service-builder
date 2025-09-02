@@ -11,5 +11,6 @@ import java.util.Map;
 @AllArgsConstructor
 public class TriggerWorkflowRequest {
     private Integer version;
+    private String resultKey;
     private Map<String, Object> variables;
 }
