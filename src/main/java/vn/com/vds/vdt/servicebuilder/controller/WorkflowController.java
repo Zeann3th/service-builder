@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import vn.com.vds.vdt.servicebuilder.common.base.ResponseWrapper;
+import vn.com.vds.vdt.servicebuilder.common.constants.ErrorCodes;
 import vn.com.vds.vdt.servicebuilder.common.enums.ExecutionMode;
 import vn.com.vds.vdt.servicebuilder.controller.dto.workflow.TriggerWorkflowRequest;
+import vn.com.vds.vdt.servicebuilder.exception.CommandExceptionBuilder;
 import vn.com.vds.vdt.servicebuilder.service.core.WorkflowService;
 
 @RestController
@@ -28,6 +30,6 @@ public class WorkflowController {
             return workflowService.executeSync(workflowName, request);
         }
         workflowService.execute(workflowName, request);
-        return null;
+        throw CommandExceptionBuilder.exception(ErrorCodes.QS40003, "Workflow is being processed");
     }
 }

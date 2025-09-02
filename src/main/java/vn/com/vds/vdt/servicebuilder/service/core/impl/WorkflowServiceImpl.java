@@ -1,6 +1,8 @@
 package vn.com.vds.vdt.servicebuilder.service.core.impl;
 
 import io.camunda.client.CamundaClient;
+import io.camunda.client.api.command.ClientException;
+import io.camunda.client.api.command.ClientStatusException;
 import io.camunda.client.api.response.ProcessInstanceResult;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import vn.com.vds.vdt.servicebuilder.controller.dto.workflow.TriggerWorkflowRequ
 import vn.com.vds.vdt.servicebuilder.exception.CommandExceptionBuilder;
 import vn.com.vds.vdt.servicebuilder.service.core.WorkflowService;
 
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -35,10 +38,10 @@ public class WorkflowServiceImpl implements WorkflowService {
             log.info("Started workflow '{}' with definitionKey={} and instanceKey={}",
                     workflowName, instance.getProcessDefinitionKey(), instance.getProcessInstanceKey());
 
-        } catch (Exception e) {
+        } catch (ClientStatusException e) {
             log.error("Failed to start workflow '{}': {}", workflowName, e.getMessage(), e);
             throw CommandExceptionBuilder.exception(
-                    ErrorCodes.QS00004,
+                    ErrorCodes.QS40002,
                     "Failed to start workflow due to non-existent workflow or invalid version"
             );
         }
@@ -65,11 +68,25 @@ public class WorkflowServiceImpl implements WorkflowService {
                     resultKey
             );
 
-            return processInstance.getVariable(resultKey);
-        } catch (Exception e) {
+            Object data = processInstance.getVariable(resultKey);
+
+            if (data instanceof Map<?, ?> rawMap) {
+                Object errorFlag = rawMap.get("error");
+                if (Boolean.TRUE.equals(errorFlag)) {
+                    Object codeObj = rawMap.get("code");
+                    Object messageObj = rawMap.get("message");
+
+                    String code = codeObj != null ? codeObj.toString() : ErrorCodes.QS00003;
+                    String message = messageObj != null ? messageObj.toString() : "System Busy";
+                    throw CommandExceptionBuilder.exception(code, message);
+                }
+            }
+
+            return data;
+        } catch (ClientException e) {
             log.error("Failed to start workflow '{}': {}", workflowName, e.getMessage(), e);
             throw CommandExceptionBuilder.exception(
-                    ErrorCodes.QS00004,
+                    ErrorCodes.QS40001,
                     e.getMessage()
             );
         }
