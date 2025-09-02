@@ -52,6 +52,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         try {
             int version = Objects.isNull(request.getVersion()) ? -1 : request.getVersion();
             String resultKey = Objects.isNull(request.getResultKey()) ? "result" : request.getResultKey();
+            String errorKey = Objects.isNull(request.getErrorKey()) ? "error" : request.getErrorKey();
 
             ProcessInstanceResult processInstance = camundaClient.newCreateInstanceCommand()
                     .bpmnProcessId(workflowName)
@@ -69,15 +70,16 @@ public class WorkflowServiceImpl implements WorkflowService {
             );
 
             Object data = processInstance.getVariable(resultKey);
-
             if (data instanceof Map<?, ?> rawMap) {
-                Object errorFlag = rawMap.get("error");
-                if (Boolean.TRUE.equals(errorFlag)) {
-                    Object codeObj = rawMap.get("code");
-                    Object messageObj = rawMap.get("message");
-
-                    String code = codeObj != null ? codeObj.toString() : ErrorCodes.QS00003;
-                    String message = messageObj != null ? messageObj.toString() : "System Busy";
+                Object errorObj = rawMap.get(errorKey);
+                if (errorObj instanceof Map<?, ?> errorMap) {
+                    String code = String.valueOf(
+                            Objects.requireNonNullElse(errorMap.get("code"), ErrorCodes.QS00003)
+                    );
+                    String message = String.valueOf(
+                            Objects.requireNonNullElse(errorMap.get("message"), "System busy")
+                    );
+                    log.error("Workflow error detected: code={}, message={}", code, message);
                     throw CommandExceptionBuilder.exception(code, message);
                 }
             }
