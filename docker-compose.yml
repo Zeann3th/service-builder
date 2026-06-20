@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: service_builder_app
+    hostname: app
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vdt_query
       SPRING_DATASOURCE_USERNAME: longlh20
@@ -24,10 +25,15 @@ services:
         condition: service_started
       zeebe:
         condition: service_healthy
+    networks:
+      service_builder:
+        aliases:
+          - app
 
   postgres:
     image: postgres:16
     container_name: service_builder_postgres
+    hostname: postgres
     environment:
       POSTGRES_DB: vdt_query
       POSTGRES_USER: longlh20
@@ -37,6 +43,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      service_builder:
+        aliases:
+          - postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U longlh20 -d vdt_query"]
       interval: 10s
@@ -46,15 +56,21 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: service_builder_zookeeper
+    hostname: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    networks:
+      service_builder:
+        aliases:
+          - zookeeper
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: service_builder_kafka
+    hostname: kafka
     depends_on:
       - zookeeper
     environment:
@@ -66,10 +82,15 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
+    networks:
+      service_builder:
+        aliases:
+          - kafka
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.15.3}
     container_name: service_builder_elasticsearch
+    hostname: elasticsearch
     environment:
       discovery.type: single-node
       xpack.security.enabled: "false"
@@ -79,6 +100,10 @@ services:
       - "9200:9200"
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
+    networks:
+      service_builder:
+        aliases:
+          - elasticsearch
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health | grep -E 'green|yellow'"]
       interval: 15s
@@ -88,6 +113,7 @@ services:
   zeebe:
     image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION:-8.8.0-alpha5}
     container_name: service_builder_zeebe
+    hostname: zeebe
     environment:
       ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_CLASSNAME: io.camunda.zeebe.exporter.ElasticsearchExporter
       ZEEBE_BROKER_EXPORTERS_ELASTICSEARCH_ARGS_URL: http://elasticsearch:9200
@@ -105,6 +131,10 @@ services:
         condition: service_healthy
     volumes:
       - zeebe_data:/usr/local/zeebe/data
+    networks:
+      service_builder:
+        aliases:
+          - zeebe
     healthcheck:
       test: ["CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1"]
       interval: 15s
@@ -114,6 +144,7 @@ services:
   operate:
     image: camunda/operate:${CAMUNDA_OPERATE_VERSION:-8.8.0-alpha5}
     container_name: service_builder_operate
+    hostname: operate
     environment:
       CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS: zeebe:26500
       CAMUNDA_OPERATE_ELASTICSEARCH_URL: http://elasticsearch:9200
@@ -127,8 +158,19 @@ services:
     depends_on:
       zeebe:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      service_builder:
+        aliases:
+          - operate
 
 volumes:
   postgres_data:
   elastic_data:
   zeebe_data:
+
+networks:
+  service_builder:
+    name: service_builder
+    driver: bridge
