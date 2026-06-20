@@ -10,6 +10,9 @@ services:
       SPRING_DATASOURCE_USERNAME: longlh20
       SPRING_DATASOURCE_PASSWORD: 123123aA@
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      CAMUNDA_CLIENT_MODE: self-managed
+      CAMUNDA_CLIENT_AUTH_METHOD: none
+      CAMUNDA_CLIENT_PREFER_REST_OVER_GRPC: "false"
       CAMUNDA_CLIENT_GRPC_ADDRESS: http://zeebe:26500
       CAMUNDA_CLIENT_REST_ADDRESS: http://zeebe:8080
       EUREKA_CLIENT_ENABLED: "false"
@@ -88,7 +91,7 @@ services:
           - kafka
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.15.3}
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.19.16}
     container_name: service_builder_elasticsearch
     hostname: elasticsearch
     environment:
@@ -111,7 +114,7 @@ services:
       retries: 10
 
   zeebe:
-    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION:-8.8.0-alpha5}
+    image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION:-8.9.9}
     container_name: service_builder_zeebe
     hostname: zeebe
     environment:
@@ -121,6 +124,9 @@ services:
       ZEEBE_BROKER_DATA_DISKUSAGECOMMANDWATERMARK: "0.998"
       ZEEBE_BROKER_DATA_DISKUSAGEREPLICATIONWATERMARK: "0.999"
       CAMUNDA_DATABASE_URL: http://elasticsearch:9200
+      CAMUNDA_DATA_SECONDARYSTORAGE_ELASTICSEARCH_URL: http://elasticsearch:9200
+      CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
+      CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
       JAVA_TOOL_OPTIONS: -Xms512m -Xmx512m
     ports:
       - "26500:26500"
@@ -142,19 +148,27 @@ services:
       retries: 10
 
   operate:
-    image: camunda/operate:${CAMUNDA_OPERATE_VERSION:-8.8.0-alpha5}
+    image: camunda/operate:${CAMUNDA_OPERATE_VERSION:-8.9.9}
     container_name: service_builder_operate
     hostname: operate
     environment:
       CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS: zeebe:26500
+      CAMUNDA_CLIENT_MODE: self-managed
+      CAMUNDA_CLIENT_AUTH_METHOD: none
+      CAMUNDA_CLIENT_GRPC_ADDRESS: http://zeebe:26500
+      CAMUNDA_CLIENT_REST_ADDRESS: http://zeebe:8080
+      ZEEBE_GATEWAY_CLUSTER_INITIALCONTACTPOINTS: zeebe:26502
       CAMUNDA_OPERATE_ELASTICSEARCH_URL: http://elasticsearch:9200
       CAMUNDA_OPERATE_ZEEBEELASTICSEARCH_URL: http://elasticsearch:9200
       CAMUNDA_OPERATE_CSRFPREVENTIONENABLED: "false"
       CAMUNDA_DATABASE_URL: http://elasticsearch:9200
+      CAMUNDA_DATA_SECONDARYSTORAGE_ELASTICSEARCH_URL: http://elasticsearch:9200
+      CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
+      CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
       management.endpoints.web.exposure.include: health
       management.endpoint.health.probes.enabled: "true"
     ports:
-      - "${OPERATE_PORT:-8081}:8080"
+      - "${OPERATE_PORT:-18081}:8080"
     depends_on:
       zeebe:
         condition: service_healthy
