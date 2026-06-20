@@ -1,4 +1,30 @@
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: service_builder_app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/vdt_query
+      SPRING_DATASOURCE_USERNAME: longlh20
+      SPRING_DATASOURCE_PASSWORD: 123123aA@
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      CAMUNDA_CLIENT_GRPC_ADDRESS: http://zeebe:26500
+      CAMUNDA_CLIENT_REST_ADDRESS: http://zeebe:8080
+      EUREKA_CLIENT_ENABLED: "false"
+      EUREKA_CLIENT_SHOULD_REGISTER_WITH_EUREKA: "false"
+      EUREKA_CLIENT_SHOULD_FETCH_REGISTRY: "false"
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "7554:7554"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      zeebe:
+        condition: service_healthy
+
   postgres:
     image: postgres:16
     container_name: service_builder_postgres
@@ -16,6 +42,30 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: service_builder_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: service_builder_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.15.3}
