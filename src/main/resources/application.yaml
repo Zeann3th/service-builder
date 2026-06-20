@@ -22,7 +22,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -45,6 +45,14 @@ app:
   kafka:
     topics:
       schema-parse: schema-parse-topic
+  cinema:
+    seed:
+      enabled: true
+    worker:
+      enabled: true
+  camunda:
+    deployment:
+      enabled: true
 
 eureka:
   client:

@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface RelationshipTypeRepository extends JpaRepository<RelationshipType, Long> {
     Optional<RelationshipType> findByFromEntityTypeIdAndToEntityTypeId(Long fromEntityId, Long toEntityId);
+
+    Optional<RelationshipType> findByName(String name);
 }

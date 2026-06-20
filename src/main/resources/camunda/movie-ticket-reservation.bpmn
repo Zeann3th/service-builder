@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:zeebe="http://camunda.org/schema/zeebe/1.0"
+                  id="Definitions_movie_ticket_reservation"
+                  targetNamespace="http://service-builder/cinema">
+  <bpmn:process id="movie-ticket-reservation" name="Movie Ticket Reservation" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_RequestReceived" name="Request received">
+      <bpmn:outgoing>Flow_Start_To_Reserve</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="ServiceTask_ReserveSeats" name="Reserve available seats">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="cinema-reserve-tickets" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_Start_To_Reserve</bpmn:incoming>
+      <bpmn:outgoing>Flow_Reserve_To_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_ResultReturned" name="Result returned">
+      <bpmn:incoming>Flow_Reserve_To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_Start_To_Reserve" sourceRef="StartEvent_RequestReceived" targetRef="ServiceTask_ReserveSeats" />
+    <bpmn:sequenceFlow id="Flow_Reserve_To_End" sourceRef="ServiceTask_ReserveSeats" targetRef="EndEvent_ResultReturned" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_movie_ticket_reservation">
+    <bpmndi:BPMNPlane id="BPMNPlane_movie_ticket_reservation" bpmnElement="movie-ticket-reservation">
+      <bpmndi:BPMNShape id="StartEvent_RequestReceived_di" bpmnElement="StartEvent_RequestReceived">
+        <dc:Bounds x="160" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ServiceTask_ReserveSeats_di" bpmnElement="ServiceTask_ReserveSeats">
+        <dc:Bounds x="260" y="78" width="160" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_ResultReturned_di" bpmnElement="EndEvent_ResultReturned">
+        <dc:Bounds x="490" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_Start_To_Reserve_di" bpmnElement="Flow_Start_To_Reserve">
+        <di:waypoint x="196" y="118" />
+        <di:waypoint x="260" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reserve_To_End_di" bpmnElement="Flow_Reserve_To_End">
+        <di:waypoint x="420" y="118" />
+        <di:waypoint x="490" y="118" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
