@@ -165,6 +165,8 @@ services:
       CAMUNDA_DATA_SECONDARYSTORAGE_ELASTICSEARCH_URL: http://elasticsearch:9200
       CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
       CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
+      SPRING_APPLICATION_JSON: >-
+        {"camunda":{"security":{"initialization":{"users":[{"username":"demo","password":"demo","name":"Demo User","email":"demo@example.com"}],"default-roles":{"admin":{"users":["demo"]}}}}}}
       management.endpoints.web.exposure.include: health
       management.endpoint.health.probes.enabled: "true"
     ports:
