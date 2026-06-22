@@ -3,45 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Cinema Ticket Reservations</title>
+  <title>CineBook — Movie Tickets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/app.css">
 </head>
 <body>
-  <main class="shell">
-    <section class="topbar">
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="2" y="6" width="20" height="12" rx="2"/>
+        <path d="M2 10h20M2 14h20M7 6V4M12 6V4M17 6V4M7 18v2M12 18v2M17 18v2"/>
+      </svg>
       <div>
         <p class="eyebrow">Service Builder Cinema</p>
-        <h1>Movie Tickets</h1>
+        <h1>CineBook</h1>
       </div>
-      <button id="refreshButton" class="secondary" type="button">Refresh</button>
-    </section>
+    </div>
+    <button id="refreshButton" class="btn-ghost" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      Refresh
+    </button>
+  </header>
 
-    <section id="status" class="status" hidden></section>
+  <div class="shell">
+    <div id="status" class="status-banner" hidden></div>
 
-    <section class="layout">
-      <div>
-        <h2>Now Showing</h2>
+    <div class="layout">
+      <section>
+        <p class="section-label">Now Showing</p>
         <div id="movieGrid" class="movie-grid" aria-live="polite"></div>
-      </div>
+      </section>
 
-      <aside class="reservation-panel">
-        <h2>Reserve Tickets</h2>
-        <div id="selectionEmpty" class="empty">
-          Select a showtime from the movie grid.
+      <aside class="panel">
+        <p class="section-label">Reserve Tickets</p>
+
+        <div id="selectionEmpty" class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+            <path d="M20 12V22H4V12"/>
+            <path d="M22 7H2v5h20V7z"/>
+            <path d="M12 22V7"/>
+            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+          </svg>
+          <p>Pick a showtime to get started</p>
         </div>
+
         <form id="reservationForm" hidden>
-          <div class="selected-showtime">
+          <div class="selected-info">
             <strong id="selectedTitle"></strong>
             <span id="selectedMeta"></span>
           </div>
-          <label for="ticketQuantity">Number of tickets</label>
-          <input id="ticketQuantity" name="quantity" type="number" min="1" value="1" required>
-          <button id="reserveButton" type="submit">Reserve</button>
+
+          <div class="form-group">
+            <label for="ticketQuantity">Number of tickets</label>
+            <div class="qty-row">
+              <button type="button" id="qtyDown" class="qty-btn" aria-label="Decrease quantity">−</button>
+              <input id="ticketQuantity" name="quantity" type="number" min="1" value="1" required>
+              <button type="button" id="qtyUp" class="qty-btn" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+
+          <button id="reserveButton" class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M20 12V22H4V12"/>
+              <path d="M22 7H2v5h20V7z"/>
+              <path d="M12 22V7"/>
+            </svg>
+            Reserve Tickets
+          </button>
         </form>
-        <div id="reservationResult" class="result" hidden></div>
+
+        <div id="reservationResult" hidden></div>
       </aside>
-    </section>
-  </main>
+    </div>
+  </div>
+
   <script src="/app.js"></script>
 </body>
 </html>

@@ -43,7 +43,7 @@ services:
       POSTGRES_PASSWORD: 123123aA@
       TZ: Asia/Ho_Chi_Minh
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -63,8 +63,6 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
     networks:
       service_builder:
         aliases:
@@ -79,12 +77,10 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://kafka:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    ports:
-      - "9092:9092"
     networks:
       service_builder:
         aliases:
@@ -100,7 +96,7 @@ services:
       cluster.routing.allocation.disk.threshold_enabled: "false"
       ES_JAVA_OPTS: -Xms512m -Xmx512m
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
     volumes:
       - elastic_data:/usr/share/elasticsearch/data
     networks:
@@ -129,9 +125,8 @@ services:
       CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
       JAVA_TOOL_OPTIONS: -Xms512m -Xmx512m
     ports:
-      - "26500:26500"
-      - "8080:8080"
-      - "9600:9600"
+      - "127.0.0.1:26500:26500"
+      - "127.0.0.1:8080:8080"
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -147,6 +142,10 @@ services:
       timeout: 5s
       retries: 10
 
+  # Operate UI — NOT publicly exposed, SSH tunnel only.
+  # Access: ssh -L 18081:localhost:18081 user@your-vps  →  http://localhost:18081
+  # Login: username=admin  password=Admin@Operate2025!
+  # Override password: set OPERATE_ADMIN_PASSWORD env var before running docker compose up
   operate:
     image: camunda/operate:${CAMUNDA_OPERATE_VERSION:-8.9.9}
     container_name: service_builder_operate
@@ -166,11 +165,11 @@ services:
       CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
       CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
       SPRING_APPLICATION_JSON: >-
-        {"camunda":{"security":{"initialization":{"users":[{"username":"demo","password":"demo","name":"Demo User","email":"demo@example.com"}],"default-roles":{"admin":{"users":["demo"]}}}}}}
+        {"camunda":{"security":{"initialization":{"users":[{"username":"admin","password":"${OPERATE_ADMIN_PASSWORD:-Admin@Operate2025!}","name":"Admin","email":"admin@localhost"}],"default-roles":{"admin":{"users":["admin"]}}}}}}
       management.endpoints.web.exposure.include: health
       management.endpoint.health.probes.enabled: "true"
     ports:
-      - "${OPERATE_PORT:-18081}:8080"
+      - "127.0.0.1:${OPERATE_PORT:-18081}:8080"
     depends_on:
       zeebe:
         condition: service_healthy
