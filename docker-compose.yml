@@ -160,12 +160,11 @@ services:
       CAMUNDA_OPERATE_ELASTICSEARCH_URL: http://elasticsearch:9200
       CAMUNDA_OPERATE_ZEEBEELASTICSEARCH_URL: http://elasticsearch:9200
       CAMUNDA_OPERATE_CSRFPREVENTIONENABLED: "false"
+      CAMUNDA_OPERATE_PASSWORD: ${OPERATE_ADMIN_PASSWORD:-Admin@Operate2025!}
       CAMUNDA_DATABASE_URL: http://elasticsearch:9200
       CAMUNDA_DATA_SECONDARYSTORAGE_ELASTICSEARCH_URL: http://elasticsearch:9200
       CAMUNDA_SECURITY_AUTHENTICATION_UNPROTECTEDAPI: "true"
       CAMUNDA_SECURITY_AUTHORIZATIONS_ENABLED: "false"
-      SPRING_APPLICATION_JSON: >-
-        {"camunda":{"security":{"initialization":{"users":[{"username":"admin","password":"${OPERATE_ADMIN_PASSWORD:-Admin@Operate2025!}","name":"Admin","email":"admin@localhost"}],"default-roles":{"admin":{"users":["admin"]}}}}}}
       management.endpoints.web.exposure.include: health
       management.endpoint.health.probes.enabled: "true"
     ports:
@@ -179,6 +178,37 @@ services:
       service_builder:
         aliases:
           - operate
+
+  operate-admin-seed:
+    image: curlimages/curl:8.11.1
+    container_name: service_builder_operate_admin_seed
+    environment:
+      OPERATE_ADMIN_USERNAME: ${OPERATE_ADMIN_USERNAME:-admin}
+      OPERATE_ADMIN_PASSWORD: ${OPERATE_ADMIN_PASSWORD:-Admin@Operate2025!}
+      OPERATE_ADMIN_EMAIL: ${OPERATE_ADMIN_EMAIL:-admin@example.com}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        i=0
+        while [ $$i -lt 60 ]; do
+          i=$$((i + 1))
+          status=$$(curl -sS -o /tmp/setup-response -w "%{http_code}" -X POST "http://operate:8080/v2/setup/user" -H "Content-Type: application/json" --data "{\"username\":\"$${OPERATE_ADMIN_USERNAME}\",\"password\":\"$${OPERATE_ADMIN_PASSWORD}\",\"name\":\"Admin\",\"email\":\"$${OPERATE_ADMIN_EMAIL}\"}" || true)
+          if [ "$$status" = "201" ] || [ "$$status" = "403" ]; then
+            cat /tmp/setup-response
+            exit 0
+          fi
+          cat /tmp/setup-response || true
+          sleep 2
+        done
+        exit 1
+    depends_on:
+      operate:
+        condition: service_started
+    networks:
+      service_builder:
+        aliases:
+          - operate-admin-seed
 
 volumes:
   postgres_data:
